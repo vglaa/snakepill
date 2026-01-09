@@ -4,7 +4,7 @@ import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { Player } from '@/lib/supabase';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = '/api';
 
 export function usePlayerWallet() {
   const { publicKey, connected } = useSolanaWallet();
