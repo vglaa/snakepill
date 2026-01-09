@@ -5,7 +5,7 @@ import { supabase, type Skin } from '@/lib/supabase';
 import { usePlayerWallet } from '@/hooks/useWallet';
 import { formatPoints } from '@/lib/wallet';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = '/api';
 
 export function SkinShop() {
   const [skins, setSkins] = useState<Skin[]>([]);

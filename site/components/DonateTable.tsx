@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase, type Donate } from '@/lib/supabase';
 import { formatWallet, formatSol } from '@/lib/wallet';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = '/api';
 
 export function DonateTable() {
   const [donates, setDonates] = useState<Donate[]>([]);

@@ -14,6 +14,11 @@
   --yellow-gold: #fbbf24;
   --text: #fafafa;
   --text-muted: #a1a1aa;
+  /* Nokia style colors */
+  --nokia-green: #9bbc0f;
+  --nokia-dark: #0f380f;
+  --nokia-light: #8bac0f;
+  --nokia-bg: #306230;
 }
 
 * {
@@ -55,7 +60,7 @@ body {
   color: #000 !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-weight: 600 !important;
-  border-radius: 8px !important;
+  border-radius: 12px !important;
 }
 
 .wallet-adapter-button:hover {
@@ -71,29 +76,53 @@ body {
   font-size: 14px !important;
 }
 
-/* Game canvas glow effect */
+/* Game canvas - Nokia style */
 .game-canvas {
-  box-shadow: 0 0 30px rgba(74, 222, 128, 0.2);
+  box-shadow:
+    0 0 0 4px #1a1a1a,
+    0 0 0 8px #27272a,
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(74, 222, 128, 0.15);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
-/* Card hover effect */
+/* Card styles - deep shadows and rounded */
 .game-card {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 10px 20px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 }
 
 .game-card:hover {
   border-color: var(--green-primary);
-  box-shadow: 0 0 20px rgba(74, 222, 128, 0.1);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 10px 20px rgba(0, 0, 0, 0.2),
+    0 0 30px rgba(74, 222, 128, 0.15),
+    0 0 0 1px rgba(74, 222, 128, 0.2) inset;
+  transform: translateY(-2px);
 }
 
 /* Skin item */
 .skin-item {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border-radius: 16px;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .skin-item:hover {
-  transform: scale(1.05);
+  transform: scale(1.05) translateY(-4px);
+  box-shadow:
+    0 8px 12px rgba(0, 0, 0, 0.4),
+    0 16px 32px rgba(0, 0, 0, 0.3);
 }
 
 .skin-item.owned {
@@ -101,7 +130,9 @@ body {
 }
 
 .skin-item.equipped {
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+  box-shadow:
+    0 0 20px rgba(74, 222, 128, 0.5),
+    0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Animations */
@@ -115,6 +146,11 @@ body {
   100% { filter: hue-rotate(360deg); }
 }
 
+@keyframes pixelGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(155, 188, 15, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(155, 188, 15, 0.8); }
+}
+
 .animate-pulse-slow {
   animation: pulse 2s ease-in-out infinite;
 }
@@ -123,16 +159,22 @@ body {
   animation: rainbow 2s linear infinite;
 }
 
+.animate-pixel-glow {
+  animation: pixelGlow 1.5s ease-in-out infinite;
+}
+
 /* Mobile touch controls */
 .touch-control {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  border-radius: 12px;
 }
 
 /* Leaderboard table */
 .leaderboard-row {
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  border-radius: 8px;
 }
 
 .leaderboard-row:hover {
@@ -147,4 +189,40 @@ body {
 
 .count-animation {
   animation: countUp 0.3s ease-out;
+}
+
+/* Pixel art text effect */
+.pixel-text {
+  font-family: 'Press Start 2P', monospace;
+  text-shadow:
+    2px 2px 0 #000,
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000;
+}
+
+/* Button styles */
+button, a {
+  border-radius: 12px;
+}
+
+/* Deep card shadow utility */
+.shadow-deep {
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 10px 20px rgba(0, 0, 0, 0.2),
+    0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+}
+
+.glow-pink {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+}
+
+.glow-gold {
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
 }

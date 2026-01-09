@@ -8,13 +8,14 @@ import { formatTime, formatPoints } from '@/lib/wallet';
 const CELL_SIZE = 20;
 const CANVAS_SIZE = 400;
 
-const SKIN_COLORS: Record<string, { primary: string; secondary: string }> = {
-  classic: { primary: '#4ade80', secondary: '#22c55e' },
-  neon: { primary: '#22d3ee', secondary: '#0891b2' },
-  gold: { primary: '#fbbf24', secondary: '#f59e0b' },
-  fire: { primary: '#ef4444', secondary: '#dc2626' },
-  rainbow: { primary: '#a855f7', secondary: '#ec4899' },
-  diamond: { primary: '#f0f9ff', secondary: '#e0f2fe' },
+// Nokia-style pixel art colors
+const SKIN_COLORS: Record<string, { primary: string; secondary: string; bg: string }> = {
+  classic: { primary: '#9bbc0f', secondary: '#8bac0f', bg: '#306230' },
+  neon: { primary: '#00ffff', secondary: '#00cccc', bg: '#0a2a2a' },
+  gold: { primary: '#ffd700', secondary: '#daa520', bg: '#2a2000' },
+  fire: { primary: '#ff4500', secondary: '#cc3700', bg: '#2a0a00' },
+  rainbow: { primary: '#ff00ff', secondary: '#cc00cc', bg: '#1a0a1a' },
+  diamond: { primary: '#ffffff', secondary: '#e0e0e0', bg: '#1a1a2a' },
 };
 
 export function SnakeGame() {
@@ -64,7 +65,7 @@ export function SnakeGame() {
     }
   }, [gameState.isPlaying, sessionData, sendHeartbeat]);
 
-  // Draw game
+  // Draw game - Pixel Art Nokia Style
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -72,82 +73,103 @@ export function SnakeGame() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.fillStyle = '#0a0a0a';
+    // Disable anti-aliasing for pixel art
+    ctx.imageSmoothingEnabled = false;
+
+    // Dark green Nokia-style background
+    ctx.fillStyle = '#0f380f';
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    // Draw grid
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth = 0.5;
-    for (let i = 0; i <= gridSize; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * CELL_SIZE, 0);
-      ctx.lineTo(i * CELL_SIZE, CANVAS_SIZE);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, i * CELL_SIZE);
-      ctx.lineTo(CANVAS_SIZE, i * CELL_SIZE);
-      ctx.stroke();
+    // Draw subtle pixel grid pattern
+    ctx.fillStyle = '#0d320d';
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        if ((i + j) % 2 === 0) {
+          ctx.fillRect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
+      }
     }
 
-    // Draw snake
+    // Draw border frame (Nokia screen style)
+    ctx.strokeStyle = '#9bbc0f';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, CANVAS_SIZE - 2, CANVAS_SIZE - 2);
+
+    // Draw snake - pixel blocks (no rounded corners)
     gameState.snake.forEach((segment, index) => {
       const isHead = index === 0;
+      const x = segment.x * CELL_SIZE;
+      const y = segment.y * CELL_SIZE;
 
       // Rainbow animation for rainbow skin
       if (currentSkin === 'rainbow') {
-        const hue = (Date.now() / 20 + index * 20) % 360;
-        ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
+        const hue = (Date.now() / 20 + index * 30) % 360;
+        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
       } else {
         ctx.fillStyle = isHead ? colors.primary : colors.secondary;
       }
 
-      // Draw rounded rectangle for each segment
-      const x = segment.x * CELL_SIZE + 1;
-      const y = segment.y * CELL_SIZE + 1;
-      const size = CELL_SIZE - 2;
-      const radius = 4;
+      // Pixel block - no rounded corners
+      ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
-      ctx.beginPath();
-      ctx.roundRect(x, y, size, size, radius);
-      ctx.fill();
+      // Add pixel detail to head
+      if (isHead) {
+        ctx.fillStyle = '#000';
+        // Eyes based on direction
+        const eyeSize = 3;
+        const eyeOffset = 4;
 
-      // Add glow effect for diamond skin
-      if (currentSkin === 'diamond' && isHead) {
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        if (gameState.direction === 'RIGHT') {
+          ctx.fillRect(x + CELL_SIZE - eyeOffset - eyeSize, y + eyeOffset, eyeSize, eyeSize);
+          ctx.fillRect(x + CELL_SIZE - eyeOffset - eyeSize, y + CELL_SIZE - eyeOffset - eyeSize, eyeSize, eyeSize);
+        } else if (gameState.direction === 'LEFT') {
+          ctx.fillRect(x + eyeOffset, y + eyeOffset, eyeSize, eyeSize);
+          ctx.fillRect(x + eyeOffset, y + CELL_SIZE - eyeOffset - eyeSize, eyeSize, eyeSize);
+        } else if (gameState.direction === 'UP') {
+          ctx.fillRect(x + eyeOffset, y + eyeOffset, eyeSize, eyeSize);
+          ctx.fillRect(x + CELL_SIZE - eyeOffset - eyeSize, y + eyeOffset, eyeSize, eyeSize);
+        } else {
+          ctx.fillRect(x + eyeOffset, y + CELL_SIZE - eyeOffset - eyeSize, eyeSize, eyeSize);
+          ctx.fillRect(x + CELL_SIZE - eyeOffset - eyeSize, y + CELL_SIZE - eyeOffset - eyeSize, eyeSize, eyeSize);
+        }
+      }
+
+      // Diamond glow effect
+      if (currentSkin === 'diamond') {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
       }
     });
 
-    // Draw pill
-    ctx.fillStyle = '#ec4899';
-    ctx.beginPath();
-    ctx.arc(
-      gameState.pill.x * CELL_SIZE + CELL_SIZE / 2,
-      gameState.pill.y * CELL_SIZE + CELL_SIZE / 2,
-      CELL_SIZE / 2 - 2,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
+    // Draw pill - pixel style square with inner detail
+    const pillX = gameState.pill.x * CELL_SIZE;
+    const pillY = gameState.pill.y * CELL_SIZE;
 
-    // Draw golden pill if exists
+    // Outer pill
+    ctx.fillStyle = '#ec4899';
+    ctx.fillRect(pillX + 2, pillY + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+    // Inner highlight
+    ctx.fillStyle = '#f472b6';
+    ctx.fillRect(pillX + 4, pillY + 4, 4, 4);
+
+    // Draw golden pill if exists - pixel style
     if (gameState.goldenPill) {
-      ctx.fillStyle = '#fbbf24';
-      ctx.shadowColor = '#fbbf24';
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.arc(
-        gameState.goldenPill.x * CELL_SIZE + CELL_SIZE / 2,
-        gameState.goldenPill.y * CELL_SIZE + CELL_SIZE / 2,
-        CELL_SIZE / 2 - 2,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      const gx = gameState.goldenPill.x * CELL_SIZE;
+      const gy = gameState.goldenPill.y * CELL_SIZE;
+
+      // Animated glow
+      const glowIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7;
+
+      // Outer golden pill
+      ctx.fillStyle = `rgba(251, 191, 36, ${glowIntensity})`;
+      ctx.fillRect(gx + 1, gy + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+      // Inner highlight
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(gx + 4, gy + 4, 6, 6);
+      // Sparkle
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(gx + 5, gy + 5, 2, 2);
     }
   }, [gameState, colors, gridSize, currentSkin]);
 
@@ -160,19 +182,19 @@ export function SnakeGame() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Score and Timer */}
-      <div className="flex items-center gap-8 text-lg">
-        <div className="flex items-center gap-2">
-          <span className="text-text-muted">Score:</span>
-          <span className="text-green-primary font-bold">{formatPoints(gameState.score)}</span>
+      {/* Score and Timer - Pixel style */}
+      <div className="flex items-center gap-6 text-base font-retro">
+        <div className="flex items-center gap-2 bg-card/50 px-3 py-2 rounded-xl border border-border">
+          <span className="text-text-muted text-xs">SCORE</span>
+          <span className="text-green-primary">{formatPoints(gameState.score)}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-text-muted">Time:</span>
-          <span className="text-yellow-gold font-bold">{formatTime(gameState.playtimeSeconds)}</span>
+        <div className="flex items-center gap-2 bg-card/50 px-3 py-2 rounded-xl border border-border">
+          <span className="text-text-muted text-xs">TIME</span>
+          <span className="text-yellow-gold">{formatTime(gameState.playtimeSeconds)}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-text-muted">Pills:</span>
-          <span className="text-pink-pill font-bold">{gameState.pillsEaten}</span>
+        <div className="flex items-center gap-2 bg-card/50 px-3 py-2 rounded-xl border border-border">
+          <span className="text-text-muted text-xs">PILLS</span>
+          <span className="text-pink-pill">{gameState.pillsEaten}</span>
         </div>
       </div>
 
@@ -182,66 +204,68 @@ export function SnakeGame() {
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          className="game-canvas rounded-lg border border-border"
+          className="game-canvas rounded-none"
+          style={{ imageRendering: 'pixelated' }}
         />
 
         {/* Start/Game Over Overlay */}
         {(!gameState.isPlaying || gameState.isGameOver) && (
-          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center rounded-lg">
+          <div className="absolute inset-0 bg-[#0f380f]/95 flex flex-col items-center justify-center">
             {gameState.isGameOver ? (
               <>
-                <h2 className="font-retro text-red-500 text-lg mb-2">GAME OVER</h2>
-                <p className="text-text-muted mb-4">
-                  {gameState.gameOverReason === 'wall' ? 'Hit the wall!' : 'Hit yourself!'}
+                <h2 className="font-retro text-[#9bbc0f] text-xl mb-4 pixel-text">GAME OVER</h2>
+                <p className="text-[#8bac0f] mb-2 font-retro text-xs">
+                  {gameState.gameOverReason === 'wall' ? 'HIT THE WALL!' : 'HIT YOURSELF!'}
                 </p>
-                <p className="text-green-primary text-xl mb-6">
-                  Final Score: {formatPoints(gameState.score)}
+                <p className="text-[#9bbc0f] text-lg mb-6 font-retro">
+                  SCORE: {formatPoints(gameState.score)}
                 </p>
               </>
             ) : (
               <>
-                <h2 className="font-retro text-green-primary text-lg mb-4">SNAKEPILL</h2>
-                <p className="text-text-muted text-sm mb-6 text-center px-4">
-                  Use arrow keys or WASD to move<br />
-                  Eat pills to grow and score points!
-                </p>
+                <h2 className="font-retro text-[#9bbc0f] text-xl mb-6 pixel-text">SNAKEPILL</h2>
+                <div className="text-[#8bac0f] text-xs mb-6 text-center font-retro leading-6">
+                  <p>ARROW KEYS OR WASD</p>
+                  <p>TO MOVE</p>
+                  <p className="mt-2">EAT PILLS TO GROW!</p>
+                </div>
               </>
             )}
             <button
               onClick={handleStart}
-              className="px-6 py-3 bg-green-primary text-black font-bold rounded-lg hover:bg-green-secondary transition-colors"
+              className="px-6 py-3 bg-[#9bbc0f] text-[#0f380f] font-retro text-sm hover:bg-[#8bac0f] transition-colors border-2 border-[#0f380f]"
             >
-              {gameState.isGameOver ? 'PLAY AGAIN' : 'START GAME'}
+              {gameState.isGameOver ? 'PLAY AGAIN' : 'START'}
             </button>
           </div>
         )}
       </div>
 
-      {/* Mobile Controls */}
+      {/* Mobile Controls - Pixel style */}
       <div className="md:hidden grid grid-cols-3 gap-2 w-48">
         <div />
         <button
           onTouchStart={() => handleTouch('UP')}
-          className="touch-control p-4 bg-card border border-border rounded-lg active:bg-green-primary active:text-black"
+          className="touch-control p-4 bg-[#306230] border-2 border-[#9bbc0f] text-[#9bbc0f] font-retro active:bg-[#9bbc0f] active:text-[#0f380f]"
         >
           &#x25B2;
         </button>
         <div />
         <button
           onTouchStart={() => handleTouch('LEFT')}
-          className="touch-control p-4 bg-card border border-border rounded-lg active:bg-green-primary active:text-black"
+          className="touch-control p-4 bg-[#306230] border-2 border-[#9bbc0f] text-[#9bbc0f] font-retro active:bg-[#9bbc0f] active:text-[#0f380f]"
         >
           &#x25C0;
         </button>
         <button
           onTouchStart={() => handleTouch('DOWN')}
-          className="touch-control p-4 bg-card border border-border rounded-lg active:bg-green-primary active:text-black"
+          className="touch-control p-4 bg-[#306230] border-2 border-[#9bbc0f] text-[#9bbc0f] font-retro active:bg-[#9bbc0f] active:text-[#0f380f]"
         >
           &#x25BC;
         </button>
         <button
           onTouchStart={() => handleTouch('RIGHT')}
-          className="touch-control p-4 bg-card border border-border rounded-lg active:bg-green-primary active:text-black"
+          className="touch-control p-4 bg-[#306230] border-2 border-[#9bbc0f] text-[#9bbc0f] font-retro active:bg-[#9bbc0f] active:text-[#0f380f]"
         >
           &#x25B6;
         </button>
@@ -249,10 +273,10 @@ export function SnakeGame() {
 
       {/* Player Stats */}
       {player && (
-        <div className="text-sm text-text-muted">
-          Total Points: <span className="text-green-primary">{formatPoints(player.total_points)}</span>
+        <div className="text-xs text-text-muted font-mono bg-card/50 px-4 py-2 rounded-xl border border-border">
+          <span className="text-green-primary">{formatPoints(player.total_points)}</span> pts
           {' | '}
-          Games: <span className="text-yellow-gold">{player.games_played}</span>
+          <span className="text-yellow-gold">{player.games_played}</span> games
           {' | '}
           Best: <span className="text-pink-pill">{formatPoints(player.highest_score)}</span>
         </div>
